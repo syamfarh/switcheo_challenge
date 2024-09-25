@@ -1,0 +1,30 @@
+computational inefficiencies and anti-patterns in the code:
+
+1. extra computation for formatted amount
+- we are only using the formatted amount once to display, storing the data might be expensive
+- Instead of separating the computation for formatted balance amount, we can calculate them dynamically
+with row.
+- Unless we are planning other features in the future, there are minimal differences between WalletBalance
+and FormattedWalletBalance interface.
+- Solution
+  * remove FormattedWalletBalance interface
+  * combine formattedBalances with rows computation
+
+2. nested if in useMemo()
+- nested if is not necessarily an anti-pattern, but it can get hard to read and understand once
+there's more layers of conditions are added.
+- Solution
+  * combine the nested if together and return the conditions
+
+3. using any as a type in getPriority
+- Assuming the code uses TypeScript throughout, I'm making assumption that balance.blockchain 
+uses string type as well based on the switch condition.
+- Using any type undermine the TypeScript type safety check that can leads to bugs and error
+- Solution:
+  * change any to string
+
+4. using index as key
+- Since reordering might happen in sortedBalance, the component might show the wrong items in wrong place
+whenever it is reordered.
+- Solution:
+  * use other unique id as key value instead, for example the balance.blockchain

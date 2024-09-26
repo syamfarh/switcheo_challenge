@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { TextField, MenuItem, Button, InputAdornment } from '@mui/material';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 
@@ -13,6 +13,8 @@ const SwapForm: React.FC = () => {
     const [buyAmount, setBuyAmount] = useState<string>('');   // Amount to buy
     const [tokenPrices, setTokenPrices] = useState<PriceData[]>([]); // Tokens and their prices
     const [loading, setLoading] = useState<boolean>(true); // Loading state
+
+    const timeoutRef = useRef<number | undefined>();
 
     useEffect(() => {
         const fetchPrices = async () => {
@@ -37,18 +39,64 @@ const SwapForm: React.FC = () => {
         return tokenData ? tokenData.price : undefined;
     };
 
-    // Calculate buy amount based on sell amount and token prices
-    useEffect(() => {
-        if (sellAmount && sellToken && buyToken) {
-          const sellPrice = getTokenPrice(sellToken);
-          const buyPrice = getTokenPrice(buyToken);
-    
-          if (sellPrice && buyPrice) {
-            const buyAmountValue = (parseFloat(sellAmount) * sellPrice) / buyPrice;
-            setBuyAmount(buyAmountValue.toFixed(6));
-          }
+      // Validate input to allow only positive numbers
+    const validateInput = (value: string) => {
+        const regex = /^[0-9]*\.?[0-9]*$/; // Regex to allow numbers and decimal point
+        return regex.test(value);
+    };
+
+  // Unified handler for updating both Sell and Buy amounts
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: 'sell' | 'buy') => {
+    const value = e.target.value;
+    if (validateInput(value)) {
+      if (field === 'sell') {
+        setSellAmount(value);
+        debounceUpdateAmounts(value, 'sell');
+      } else if (field === 'buy') {
+        setBuyAmount(value);
+        debounceUpdateAmounts(value, 'buy');
+      }
+    }
+  };
+
+  // Debounce function to update amounts with a delay
+  const debounceUpdateAmounts = (value: string, field: 'sell' | 'buy') => {
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Set a new timeout to delay the calculation
+    timeoutRef.current = window.setTimeout(() => {
+      const sellPrice = getTokenPrice(sellToken);
+      const buyPrice = getTokenPrice(buyToken);
+
+      if (sellPrice && buyPrice) {
+        if (field === 'sell') {
+            if (value) {
+                // Update Buy amount based on Sell amount
+                const newBuyAmount = (parseFloat(value) * sellPrice) / buyPrice;
+                setBuyAmount(newBuyAmount.toFixed(6));
+            } else {
+                setBuyAmount('');
+            }
+        } else if (field === 'buy') {
+            if (value) {
+                // Update Sell amount based on Buy amount
+                const newSellAmount = (parseFloat(value) * buyPrice) / sellPrice;
+                setSellAmount(newSellAmount.toFixed(6));
+            } else {
+                setSellAmount('');
+            }
+
         }
-      }, [sellAmount, sellToken, buyToken, tokenPrices]);
+      }
+    }, 500); // 500ms debounce delay
+  };
+
+    if (loading) {
+        return <div className="text-center text-white">Loading tokens...</div>;
+    }
 
     return (
         <div className="bg-gray-900 p-6 rounded-lg shadow-md max-w-md mx-auto text-white">
@@ -58,10 +106,10 @@ const SwapForm: React.FC = () => {
                 <TextField
                     label="Sell"
                     variant="outlined"
-                    type="number"
+                    type="text"
                     fullWidth
                     value={sellAmount}
-                    onChange={(e) => setSellAmount(e.target.value)}
+                    onChange={(e) => handleAmountChange(e, 'sell')}
                     slotProps={{
                         input: {
                             startAdornment: (
@@ -75,7 +123,7 @@ const SwapForm: React.FC = () => {
                                 >
                                     {tokenPrices.map((token) => (
                                         <MenuItem key={token.currency} value={token.currency}>
-                                            {token.currency} - ${token.price.toFixed(2)}
+                                            {token.currency}
                                         </MenuItem>
                                     ))}
                                 </TextField>
@@ -95,10 +143,10 @@ const SwapForm: React.FC = () => {
         <TextField
           label="Buy"
           variant="outlined"
-          type="number"
+          type="text"
           fullWidth
           value={buyAmount}
-          onChange={(e) => setBuyAmount(e.target.value)}
+          onChange={(e) => handleAmountChange(e, 'buy')}
           slotProps={{
             input: {
             startAdornment: (
@@ -112,7 +160,7 @@ const SwapForm: React.FC = () => {
                 >
                     {tokenPrices.map((token) => (
                     <MenuItem key={token.currency} value={token.currency}>
-                      {token.currency} - ${token.price.toFixed(2)}
+                      {token.currency}
                     </MenuItem>
                   ))}
                 </TextField>

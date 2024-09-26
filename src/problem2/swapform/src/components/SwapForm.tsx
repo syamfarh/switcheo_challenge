@@ -94,6 +94,19 @@ const SwapForm: React.FC = () => {
     }, 500); // 500ms debounce delay
   };
 
+    // Swap tokens and amounts
+    const handleSwapTokens = () => {
+        // Swap tokens
+        const tempToken = sellToken;
+        setSellToken(buyToken);
+        setBuyToken(tempToken);
+    
+        // Swap amounts
+        const tempAmount = sellAmount;
+        setSellAmount(buyAmount);
+        setBuyAmount(tempAmount);
+      };
+
     if (loading) {
         return <div className="text-center text-white">Loading tokens...</div>;
     }
@@ -109,6 +122,7 @@ const SwapForm: React.FC = () => {
                     type="text"
                     fullWidth
                     value={sellAmount}
+                    placeholder="0"
                     onChange={(e) => handleAmountChange(e, 'sell')}
                     slotProps={{
                         input: {
@@ -135,10 +149,12 @@ const SwapForm: React.FC = () => {
                 />
             </div>
             {/* Swap Icon */}
-            <div className="flex justify-center mb-4">
-                
-            </div> 
-                  {/* Buy Amount */}
+                <div className="flex justify-center mb-4">
+                    {/* **Added onClick handler to swap tokens and amounts** */}
+                    <SwapVertIcon fontSize="large" onClick={handleSwapTokens} style={{ cursor: 'pointer' }} />
+                </div>
+        
+        {/* Buy Amount */}
       <div className="mb-4">
         <TextField
           label="Buy"
@@ -146,6 +162,7 @@ const SwapForm: React.FC = () => {
           type="text"
           fullWidth
           value={buyAmount}
+          placeholder="0"
           onChange={(e) => handleAmountChange(e, 'buy')}
           slotProps={{
             input: {

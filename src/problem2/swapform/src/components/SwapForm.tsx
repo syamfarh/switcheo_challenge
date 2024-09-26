@@ -83,7 +83,20 @@ const SwapForm: React.FC = () => {
       }
     }, 500); // 500ms debounce delay
   };
-
+    // Recalculate when sell token changes
+    useEffect(() => {
+        if (sellAmount) {
+            calculateAmounts(sellAmount, 'sell');
+        }
+    }, [sellToken]); 
+  
+    // Recalculate when buy token changes
+    useEffect(() => {
+        if (buyAmount) {
+            calculateAmounts(buyAmount, 'buy');
+        }
+    }, [buyToken]);
+    
     // Swap tokens and amounts
     const handleSwapTokens = () => {
         // Swap tokens

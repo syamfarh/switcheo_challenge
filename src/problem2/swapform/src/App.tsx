@@ -5,7 +5,7 @@ import SwapForm from './components/SwapForm';
 
 function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-800">
+    <div className="flex items-center justify-center min-h-screen bg-gray-900">
       <SwapForm />
     </div>
   );

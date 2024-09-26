@@ -51,45 +51,35 @@ const SwapForm: React.FC = () => {
     if (validateInput(value)) {
       if (field === 'sell') {
         setSellAmount(value);
-        debounceUpdateAmounts(value, 'sell');
+        calculateAmounts(value, 'sell');
       } else if (field === 'buy') {
         setBuyAmount(value);
-        debounceUpdateAmounts(value, 'buy');
+        calculateAmounts(value, 'buy');
       }
     }
   };
 
   // Debounce function to update amounts with a delay
-  const debounceUpdateAmounts = (value: string, field: 'sell' | 'buy') => {
-    // Clear any existing timeout
+  const calculateAmounts = (value: string, field: 'sell' | 'buy') => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
-
-    // Set a new timeout to delay the calculation
+  
     timeoutRef.current = window.setTimeout(() => {
       const sellPrice = getTokenPrice(sellToken);
       const buyPrice = getTokenPrice(buyToken);
-
-      if (sellPrice && buyPrice) {
+  
+      if (sellPrice && buyPrice && value) {
         if (field === 'sell') {
-            if (value) {
-                // Update Buy amount based on Sell amount
-                const newBuyAmount = (parseFloat(value) * sellPrice) / buyPrice;
-                setBuyAmount(newBuyAmount.toFixed(6));
-            } else {
-                setBuyAmount('');
-            }
-        } else if (field === 'buy') {
-            if (value) {
-                // Update Sell amount based on Buy amount
-                const newSellAmount = (parseFloat(value) * buyPrice) / sellPrice;
-                setSellAmount(newSellAmount.toFixed(6));
-            } else {
-                setSellAmount('');
-            }
-
+          const newBuyAmount = (parseFloat(value) * sellPrice) / buyPrice;
+          setBuyAmount(newBuyAmount.toFixed(6));
+        } else {
+          const newSellAmount = (parseFloat(value) * buyPrice) / sellPrice;
+          setSellAmount(newSellAmount.toFixed(6));
         }
+      } else {
+        if (field === 'sell') setBuyAmount('');
+        else setSellAmount('');
       }
     }, 500); // 500ms debounce delay
   };
@@ -112,8 +102,8 @@ const SwapForm: React.FC = () => {
     }
 
     return (
-        <div className="bg-gray-900 p-6 rounded-lg shadow-md max-w-md mx-auto text-white">
-            <h1 className="text-2xl mb-4 text-center">Swap</h1>
+        <div className="bg-gray-800 p-8 rounded-lg shadow-md max-w-md w-full text-white">
+            <h1 className="text-3xl font-bold mb-6 text-center text-white">Swap</h1>
             <div className="mb-4">
             {/* Sell Amount */}
                 <TextField
@@ -145,13 +135,17 @@ const SwapForm: React.FC = () => {
                             ),
                         },
                     }}
-                    className="bg-gray-800 text-white rounded-lg"
+                    className="bg-gray-700 text-white rounded-lg text-lg"
                 />
             </div>
             {/* Swap Icon */}
                 <div className="flex justify-center mb-4">
                     {/* **Added onClick handler to swap tokens and amounts** */}
-                    <SwapVertIcon fontSize="large" onClick={handleSwapTokens} style={{ cursor: 'pointer' }} />
+                    <SwapVertIcon 
+                        fontSize="large" 
+                        onClick={handleSwapTokens} 
+                        style={{ cursor: 'pointer' }} 
+                        className="cursor-pointer text-white hover:text-gray-300"/>
                 </div>
         
         {/* Buy Amount */}
@@ -185,8 +179,9 @@ const SwapForm: React.FC = () => {
             ),
         },
           }}
-          className="bg-gray-800 text-white rounded-lg"
+          className="bg-gray-700 text-white rounded-lg text-lg"
         />
+        
       </div>    
         </div>
         
